@@ -4,7 +4,7 @@
 // and that spot is available JUST on class components!
 
 import { Component } from 'react'
-import { ListGroup } from 'react-bootstrap'
+import { ListGroup, Spinner, Alert } from 'react-bootstrap'
 // import ListGroup from 'react-bootstrap/ListGroup'
 // this way would be the preferred one
 
@@ -13,6 +13,13 @@ import { ListGroup } from 'react-bootstrap'
 // 3) now we have to fill the state! we have to fetch the reservations list and use this.setState to put them into the state
 // 4) let's NOT launch our fetchReservations() function from render()... because render() fires again at every state change!
 // 5) we should find a method that is guaranteed to be executed JUST ONCE!
+// 6) that method is called componentDidMount, and if present, will be executed after the initial render() invokation!
+
+// - first render invocation takes into the page the static elements: the title, the empty list, the side components
+// - after the first render, componentDidMount gets executed automatically (if present!)
+// - componentDidMount takes care of executing the fetch() because it's guaranteed to NOT be executed again!
+// - after getting the data from the API, componentDidMount usually sets the state with the data
+// - after setting the state, render() wakes up automatically and fires again. this time, the state is filled with the data!
 
 class ReservationsList extends Component {
   state = {
@@ -20,6 +27,8 @@ class ReservationsList extends Component {
     // what is going to be the INITIAL value of reservations?
     // reservations is ALWAYS going to be an array!
     // so let's initialize it as an EMPTY one!
+    isLoading: true,
+    isError: false,
   }
 
   componentDidMount = () => {
@@ -42,15 +51,24 @@ class ReservationsList extends Component {
         // we have to use setState in order to change the state object!
         this.setState({
           reservations: data,
+          isLoading: false,
         })
       } else {
         // server answered with an error code! :(
         console.log('error happened!')
+        this.setState({
+          isLoading: false,
+          isError: true,
+        })
       }
     } catch (error) {
       // falling here if we're not able to contact the server at all
       // (network issues?)
       console.log(error)
+      this.setState({
+        isLoading: false,
+        isError: true,
+      })
     }
   }
 
@@ -63,10 +81,20 @@ class ReservationsList extends Component {
     return (
       <div className="my-2 text-center">
         <h2>Booked tables!</h2>
+        {/* let's create a connection between the Spinner and isLoading from the state: */}
+        {/* I want them to be connected! */}
+        {this.state.isError && (
+          <Alert variant="danger">Aaw snap, an error happened!😖</Alert>
+        )}
+        {this.state.isLoading && (
+          <Spinner animation="border" variant="success" />
+        )}
         {/* the list will go here */}
         <ListGroup>
           {this.state.reservations.map((bookedTable, i) => (
-            <ListGroup.Item key={i}>{bookedTable.name}</ListGroup.Item>
+            <ListGroup.Item key={i}>
+              {bookedTable.name} at {bookedTable.dateTime}
+            </ListGroup.Item>
           ))}
         </ListGroup>
       </div>
