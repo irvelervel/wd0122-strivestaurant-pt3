@@ -7,6 +7,7 @@ import { Component } from 'react'
 import { ListGroup, Spinner, Alert } from 'react-bootstrap'
 // import ListGroup from 'react-bootstrap/ListGroup'
 // this way would be the preferred one
+import { parseISO, format } from 'date-fns'
 
 // 1) we're going to create an empty state, for holding the reservations at a later point
 // 2) create a binding, a connection between the STATE and the INTERFACE (the render() method)
@@ -93,8 +94,14 @@ class ReservationsList extends Component {
         <ListGroup>
           {this.state.reservations.map((bookedTable, i) => (
             <ListGroup.Item key={i}>
-              {bookedTable.name} at {bookedTable.dateTime}
+              {bookedTable.name} for {bookedTable.numberOfPeople} at{' '}
+              {format(parseISO(bookedTable.dateTime), 'do MMMM yyyy | HH:mm')}
             </ListGroup.Item>
+            // we'd like to take dateTime, which is a string representing a date,
+            // and convert it into ANOTHER string.
+            // the solution is going to take 2 steps:
+            // 1) to convert the date string into a proper moment in time! (a.k.a. a Date object)
+            // 2) to re-convert that moment in time into a BETTER string (more readable by humans)
           ))}
         </ListGroup>
       </div>
